@@ -4,5 +4,7 @@ public interface systemInterface extends java.rmi.Remote {
     // add takes two long values, adds them together and returns the resulting
     // long value
 
-    public String testMessage() throws java.rmi.RemoteException;
+
+    public boolean registerAccount(String username, String password) throws RemoteException;
+    public boolean loginAttempt(String username, String password) throws RemoteException;
 }
