@@ -119,10 +119,12 @@ public class client {
 //        System.out.println(testusr.getName() + " "+ testusr.getPassword() + " "+ testusr.getId());
 
         //try registering.
-        if(si.registerAccount(username, userpass)){
-            System.out.println("Account succesfully registered!");
-        }
-        else System.out.println("Account with this username/password combination already exists.");
+        if(calculatePassword(userpass)){
+            if(si.registerAccount(username, userpass)){
+                System.out.println("Account succesfully registered!");
+            }
+            else System.out.println("Account with this username/password combination already exists.");
+        }else System.out.println("register failed");
 
 
     }
@@ -161,5 +163,49 @@ public class client {
             System.out.println("Logging in unsuccessful.");
             return false;
         }
+    }
+
+    /**
+     * Method that checks a password and calculates a score for it. (0-10)
+     * The password must have at least 8 symbols AND at least a score of 6 to be accepted.
+     * @param password
+     * @return
+     */
+    private boolean calculatePassword(String password) {
+        int pass_score = 0;
+        boolean is_passwordGood = false;
+
+        //password length must be 8 or more.
+        if (password.length() < 8){
+            System.out.println("Password length must be at least 8 characters.");
+            return false;
+        }
+
+        else if (password.length() >= 10)
+            pass_score += 2;
+        else
+            pass_score += 1;
+
+        //if it contains one digit, add 2 to total score
+        if (password.matches("(?=.*[0-9]).*"))
+            pass_score += 2;
+
+        //if it contains one lower case letter, add 2 to total score
+        if (password.matches("(?=.*[a-z]).*"))
+            pass_score += 2;
+
+        //if it contains one upper case letter, add 2 to total score
+        if (password.matches("(?=.*[A-Z]).*"))
+            pass_score += 2;
+
+        //if it contains one special character, add 2 to total score
+        if (password.matches("(?=.*[~!@#$%^&*()_-]).*"))
+            pass_score += 2;
+
+        if(pass_score < 6){
+            System.out.println("Passowrd too weak" + " " + pass_score);
+            return false;
+        }
+        else return true;
     }
 }
