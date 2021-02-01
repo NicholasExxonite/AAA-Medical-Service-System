@@ -5,17 +5,43 @@ import java.rmi.NotBoundException;	//Import the NotBoundException class so you c
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Scanner;
+import javax.crypto.SecretKey;
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.KeyPairGenerator;
+import java.security.KeyPair;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.NoSuchAlgorithmException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchProviderException;
+import java.nio.ByteBuffer;
 
 public class client {
     private Boolean is_signedin = false;
     private User current_user;
+    //The id number of the current session. used so the server knows which key to use. should be passed with each message
+	private int sessionId;
+	//The key used for encrypting and decrypting messages
+	private SecretKey sessionKey;
+	//The converter object used to encrypt and decrypt messages
+	private Converter converter = new Converter();
 
     private client(){
         try{
             Registry registry = LocateRegistry.getRegistry( null);
             systemInterface si = (systemInterface) Naming.lookup("systemInterface");
 
-
+            if(!sessionKeyNegotiation(si))
+            {
+                System.out.println("Session Key Negotiaion failed");
+                return;
+            }
+    
             //...
             System.out.println("Client initialized. Running.");
 
@@ -207,5 +233,105 @@ public class client {
             return false;
         }
         else return true;
+    }
+
+     /**
+     * Perform handshake with the server to authenticate the server
+     * Generates session keys which should be used to encrypt and decrypt future messages
+     * @param si
+     * @return True if authentication was successful
+     */
+    public boolean sessionKeyNegotiation(systemInterface si) throws RemoteException
+    {
+        try
+        {
+            //Generate clients keys
+            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
+            keyGen.initialize(1024, random);
+            KeyPair pair = keyGen.generateKeyPair();
+            PublicKey clientPublic = pair.getPublic();
+            long clientRandom = random.nextLong();
+
+            //send client hello
+            sessionId = si.clientHello(clientRandom);
+
+            //get server hello
+            PublicKey serverPublic = si.getPublicKey();
+            long serverRandom = si.getServerRandom(sessionId);
+            if(serverRandom == 0)
+            {
+                return false;
+            }
+
+            //send secret
+            long secretRandom = random.nextLong();
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, serverPublic);
+            cipher.update(converter.longToByteArray(secretRandom,16));
+            byte[] secret = cipher.doFinal();
+            si.setSecret(secret, sessionId);
+
+            //create sessionkey
+            long totalRandoms = clientRandom + serverRandom + secretRandom;
+            sessionKey = new SecretKeySpec(converter.longToByteArray(totalRandoms,16), "AES");
+
+            //send client finished
+            byte[] clientFinished = converter.encrypt("finished".getBytes(), sessionKey);
+            si.clientFinished(clientFinished, sessionId);
+
+            //get server finished
+            byte[] serverFinished = si.serverFinished(sessionId);
+            if(serverFinished == null)
+            {
+                return false;
+            }
+            byte[] decrypted = converter.decrypt(serverFinished, sessionKey);
+            String output = new String(decrypted);
+            if(output.equals("finished"))
+            {
+                return true;
+            }
+            return false;
+            
+        }
+        catch(NoSuchAlgorithmException e)
+        {
+            System.out.println();
+            System.out.println("NoSuchAlgorithmException :");
+            System.out.println(e);
+        }
+        catch(NoSuchPaddingException e)
+        {
+            System.out.println();
+            System.out.println("NoSuchPaddingException :");
+            System.out.println(e);
+        }
+        catch(BadPaddingException e)
+        {
+            System.out.println();
+            System.out.println("BadPaddingException :");
+            System.out.println(e);
+        }
+        catch(InvalidKeyException e)
+        {
+            System.out.println();
+            System.out.println("InvalidKeyException :");
+            System.out.println(e);
+        }
+        catch(IllegalBlockSizeException e)
+        {
+            System.out.println();
+            System.out.println("IllegalBlockSizeException :");
+            System.out.println(e);
+        }
+        catch(NoSuchProviderException e)
+        {
+            System.out.println();
+            System.out.println("NoSuchProviderException :");
+            System.out.println(e);
+        }
+
+        return false;
     }
 }
