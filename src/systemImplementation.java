@@ -9,6 +9,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
 {
     //Temporary hashmap to store usernames and passwords.
     private HashMap<String, String> credentials;
+    private HashMap<String, User> registerUsers;
 
         // Implementations must have an explicit constructor
         // in order to declare the RemoteException exception
@@ -17,11 +18,12 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
         throws java.rmi.RemoteException {
             super();
             credentials = new HashMap<>();
+            registerUsers = new HashMap<>();
         }
 
 
     /**
-     * Method that tries to register the uesr with the inputted username/password combination
+     * A method that checks if such an account exists. If not it creates a new one and saves it.
      * @param username
      * @param password
      * @return
@@ -30,19 +32,25 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
     public synchronized boolean registerAccount(String username, String password) throws RemoteException{
         //always false for now.
         boolean account_exists = false;
+
+
         //Code to check database/data array if the username+password combination already exists.
+        //...
+        //...
 
-        //If it doesn't exist return true - account is created
+
+        //If it doesn't exist return true, account is created
         if(!account_exists){
-            //Not saved anywhere as of yet.
-            UUID user_id = UUID.randomUUID();
 
-            //test on server end.
-            System.out.println("User info: " + username + "\n" + password +"\n"+ user_id);
+            //Create new user
+            User user = new User(username, password);
+            //Save new users with usernames as key. Maybe use the random UUID ??
+            registerUsers.put(user.getName(), user);
 
-            //populate database
-            credentials.put(username, password);
-
+            //Tests..
+            System.out.println(registerUsers.get(user.getName()).getName());
+            System.out.println(registerUsers.get(user.getName()).getPassword());
+            System.out.println(registerUsers.get(user.getName()).getId());
             return true;
         }
         else return false;
@@ -57,24 +65,27 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
      * @return
      * @throws RemoteException
      */
+
     public boolean loginAttempt(String username, String password) throws RemoteException {
-        for(Map.Entry e : credentials.entrySet())
+        //Check if this username exists.
+        if(registerUsers.containsKey(username))
         {
-            if(username.equals(e.getKey()))
-            {
-                if(password.equals(e.getValue()))
-                {
-                    System.out.println("User successfully logged in.");
-                    //Return true to the client
-                    return true;
-                }
-                else
-                {
-                    System.out.println("No such username/password combination found");
-                }
+            System.out.println("Username exists.");
+            //Check if the inputted password matches this user object's passowrd.
+            if(password.equals(registerUsers.get(username).getPassword())){
+                System.out.println("Passowrd exists! Logged in");
+                return true;
             }
+            else System.out.println("Username exists, password doesn't match");
         }
+        else System.out.println("Username doesn't exist");
+
         //Return false to the client.
         return false;
+    }
+
+    //Get the user object based on the key(username for now)
+    public User get_cur_user(String username) throws RemoteException{
+        return registerUsers.get(username);
     }
 }

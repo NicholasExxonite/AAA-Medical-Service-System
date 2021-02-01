@@ -7,7 +7,8 @@ import java.rmi.registry.Registry;
 import java.util.Scanner;
 
 public class client {
-    private Boolean is_signedup = false;
+    private Boolean is_signedin = false;
+    private User current_user;
 
     private client(){
         try{
@@ -15,12 +16,12 @@ public class client {
             systemInterface si = (systemInterface) Naming.lookup("systemInterface");
 
 
-
-
-            //Start the running loop.
+            //...
             System.out.println("Client initialized. Running.");
 
-            while(true) {
+            //Guest user UI..
+            while(!is_signedin) {
+
 
                 Scanner s = new Scanner(System.in);
                 String input = s.nextLine();
@@ -48,6 +49,14 @@ public class client {
                     System.out.println("Unknown command.");
                 }
             }
+
+            //Logged in user UI
+            while(is_signedin){
+                System.out.println("Welcome to the user clinet " + current_user.getName() + " !");
+
+                Scanner s = new Scanner(System.in);
+                String input = s.nextLine();
+            }
         }
         // Catch the exceptions that may occur - rubbish URL, Remote exception
         // Not bound exception or the arithmetic exception that may occur in
@@ -73,6 +82,11 @@ public class client {
             System.out.println(ae);
         }
     }
+
+    /**
+     * Main method. Client initialization.
+     * @param args
+     */
     public static void main(String[] args)
     {
         client client = new client();
@@ -96,22 +110,32 @@ public class client {
         System.out.println("Please enter password: ");
         String userpass = sc.nextLine();
 
-        if(si.registerAccount(username,  userpass))
-        {
-            System.out.println("Account registered successfully!");
+        //Instead of saving username and password in a map, create a new user object
+        //and save that in the map. (userobj is value, key: user name or id?)
+//        User testusr= new User(username, userpass);
+
+
+        //test print statement
+//        System.out.println(testusr.getName() + " "+ testusr.getPassword() + " "+ testusr.getId());
+
+        //try registering.
+        if(si.registerAccount(username, userpass)){
+            System.out.println("Account succesfully registered!");
         }
         else System.out.println("Account with this username/password combination already exists.");
+
+
     }
 
     /**
      * Method that tries to log in the user.
      * Passes the user inputted username and password
      * to the server to check if such combination exists.
-     * @param ai
+     * @param si
      * @return True if the user is successfully logged in or false if not.
      * @throws RemoteException
      */
-    public boolean tryLoggingIn(systemInterface ai) throws RemoteException {
+    public boolean tryLoggingIn(systemInterface si) throws RemoteException {
         Scanner sc = new Scanner(System.in);
         System.out.println("Please enter username: ");
         String username = sc.nextLine();
@@ -121,12 +145,16 @@ public class client {
 
 
 
-        //Try logging in after authentication
-        if(ai.loginAttempt(username, password))
+        //Try logging
+        if(si.loginAttempt(username, password))
         {
             System.out.println("You have logged in successfully!");
             //Set user signed up to true
-            this.is_signedup = true;
+            this.is_signedin = true;
+
+            //If this user exists save his user data in current_user.
+            this.current_user = si.get_cur_user(username);
+            //System.out.println(current_user.getName() + " " + current_user.getPassword());
             return true;
         }
         else {
