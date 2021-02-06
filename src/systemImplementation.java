@@ -31,7 +31,8 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
     private KeyPair serverKeypair;
     //Hashmap of client details for credential negotiation
     private HashMap<Integer, SessionKeyNegotiationValues> sknValues = new HashMap<Integer, SessionKeyNegotiationValues>();
-
+    //The log of all changes made
+    private LogsList logs = new LogsList();
 
         // Implementations must have an explicit constructor
         // in order to declare the RemoteException exception
@@ -143,6 +144,8 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
     {
         sknValues.put(sknValues.size(), new SessionKeyNegotiationValues());
         sknValues.get(sknValues.size()-1).setClientRandom(clientRandom);
+        //add log for person attempting connection, identify person later
+        logs.addLog("person " + (sknValues.size()-1), "connect", "requested connection");
         //generate a session id for the client
         return sknValues.size()-1;
     }
