@@ -152,4 +152,54 @@ public class Converter
         buff.putLong(input);
         return buff.array();
     }
+
+    /**
+     * Converts an int to an encrypted byte array
+     * @param input the variable being encrypted
+     * @param key the key used to encrypt it
+     * @return the encrypted variable as a byte array
+     */
+    public byte[] encryptInt(int input, SecretKey key)
+    {
+        ByteBuffer buff = ByteBuffer.allocate(Integer.BYTES);
+        buff.putInt(input);
+        return (encrypt(buff.array(),key));
+    }
+    
+    /**
+     * Converts an encrypted byte array to an int
+     * @param input the array being decrypted
+     * @param key the key used to decrypt it
+     * @return the decrypted variable
+     */
+    public int decryptInt(byte[] input, SecretKey key)
+    {
+        ByteBuffer buff = ByteBuffer.allocate(Integer.BYTES);
+        buff.put(decrypt(input, key));
+        buff.flip();
+        return buff.getInt();
+    }
+
+    /**
+     * Converts a string to an encrypted byte array
+     * @param input the variable being encrypted
+     * @param key the key used to encrypt it
+     * @return the encrypted variable as a byte array
+     */
+    public byte[] encryptString(String input, SecretKey key)
+    {
+        return encrypt(input.getBytes(), key);
+    }
+    
+    /**
+     * Converts an encrypted byte array to a string
+     * @param input the array being decrypted
+     * @param key the key used to decrypt it
+     * @return the decrypted variable
+     */
+    public String decryptString(byte[] input, SecretKey key)
+    {
+        byte[] decrypted = decrypt(input, key);
+        return(new String(decrypted));
+    }
 }

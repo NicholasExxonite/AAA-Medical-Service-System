@@ -32,6 +32,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
     //Hashmap of client details for credential negotiation
     private HashMap<Integer, SessionKeyNegotiationValues> sknValues = new HashMap<Integer, SessionKeyNegotiationValues>();
 
+
         // Implementations must have an explicit constructor
         // in order to declare the RemoteException exception
 
@@ -242,8 +243,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
      */
     public void clientFinished(byte[] clientFinished, int sessionId) throws RemoteException
     {
-        byte[] decrypted = converter.decrypt(clientFinished, sknValues.get(sessionId).getKey());
-        String output = new String(decrypted);
+        String output = converter.decryptString(clientFinished, sknValues.get(sessionId).getKey());
         if(output.equals("finished"))
         {
             sknValues.get(sessionId).clientIsFinished();
@@ -262,7 +262,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
         {
             return null;
         }
-        byte[] clientFinished = converter.encrypt("finished".getBytes(), sknValues.get(sessionId).getKey());
+        byte[] clientFinished = converter.encryptString("finished", sknValues.get(sessionId).getKey());
         return (clientFinished);
     }
 

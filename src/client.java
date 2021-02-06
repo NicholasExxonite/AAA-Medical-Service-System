@@ -277,7 +277,7 @@ public class client {
             sessionKey = new SecretKeySpec(converter.longToByteArray(totalRandoms,16), "AES");
 
             //send client finished
-            byte[] clientFinished = converter.encrypt("finished".getBytes(), sessionKey);
+            byte[] clientFinished = converter.encryptString("finished", sessionKey);
             si.clientFinished(clientFinished, sessionId);
 
             //get server finished
@@ -286,8 +286,7 @@ public class client {
             {
                 return false;
             }
-            byte[] decrypted = converter.decrypt(serverFinished, sessionKey);
-            String output = new String(decrypted);
+            String output = converter.decryptString(serverFinished, sessionKey);
             if(output.equals("finished"))
             {
                 return true;
