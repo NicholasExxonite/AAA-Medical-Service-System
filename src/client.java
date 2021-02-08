@@ -4,6 +4,9 @@ import java.net.MalformedURLException;	//Import the MalformedURLException class 
 import java.rmi.NotBoundException;	//Import the NotBoundException class so you can catch it
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.sql.SQLOutput;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import javax.crypto.SecretKey;
 import javax.crypto.Cipher;
@@ -47,6 +50,7 @@ public class client {
 
             //Guest user UI..
             while(!is_signedin) {
+                System.out.println("r = register | l = login | e = exit");
 
 
                 Scanner s = new Scanner(System.in);
@@ -62,6 +66,7 @@ public class client {
                 //Register User
                 else if(input.equals("r"))
                 {
+
                     tryRegistering(si);
 
                 }
@@ -77,42 +82,37 @@ public class client {
             }
 
             //Logged in user UI
+            System.out.println("Welcome to the user clinet " + current_user.getName() + " !");
+            System.out.println("Choose what operation you want to do.");
+
             while(is_signedin){
-                System.out.println("Welcome to the user clinet " + current_user.getName() + " !");
+                System.out.println("Possible operations: read, write, update, delete");
 
                 Scanner s = new Scanner(System.in);
                 String input = s.nextLine();
-		    
-		    Role role=new Role();
-                ThreadLocal<Role> roleThreadLocal=new ThreadLocal<>();
-                //patient
-                if(input.equals("patient"))
-                {
-                    role.setRoleName("patient");
-                    role.setUserName(current_user.getName());
-                    roleThreadLocal.set(role);
+                String operation = "";
+                if(input.equals("read")) operation="r";
+                else if(input.equals("write")) operation="w";
+                else if (input.equals("update")) operation="u";
+                else if(input.equals("delete")) operation="d";
+                else{
+                    System.out.println("Unknown operation.");
+                    continue;
                 }
-                //medical staff
-                else if(input.equals("medical staff"))
+                //send the operation to the server to check if the user has the right role for access
+
+                if(si.roleAuthorization(current_user.getName(), operation))
                 {
-                    role.setRoleName("medical staff");
-                    role.setUserName(current_user.getName());
-                    roleThreadLocal.set(role);
-                }
-                //supervise
-                else if(input.equals(" regulator"))
-                {
-                    role.setRoleName(" regulator");
-                    role.setUserName(current_user.getName());
-                    roleThreadLocal.set(role);
+                    System.out.println("Operation done!");
+                    //Do operation..
                 }
                 else {
-                    System.out.println("Unknown command.");
+                    System.out.println("You don't have access to this operation.");
+                    continue;
                 }
-                Map<String,Role> roleMap=new HashMap<>();
-                roleMap.put(role.getRoleName(),role);
 
-                havaAuthorisation(roleThreadLocal,roleMap,si);
+
+//                havaAuthorisation(roleThreadLocal,roleMap,si);
             }
         }
         // Catch the exceptions that may occur - rubbish URL, Remote exception
@@ -150,25 +150,25 @@ public class client {
 
     }
 
-    
-        public void havaAuthorisation(ThreadLocal<Role> roleThreadLocal,Map<String,Role> roleMap,systemInterface si) throws RemoteException{
 
+    public void havaAuthorisation(ThreadLocal<Role> roleThreadLocal, Map<String,Role> roleMap, systemInterface si) throws RemoteException {
+        System.out.println("Possible operations: read, write, update, delete");
         System.out.println("Please enter your operation: ");
         Scanner sc = new Scanner(System.in);
         String operation = sc.nextLine();
-        if (operation.equals("read")){
+        if (operation.equals("read")) {
             if (roleThreadLocal.get().getRoleName().equals("regulator") && roleMap.get("patient") != null) {
                 this.current_user = si.get_anonymity_user(roleThreadLocal.get().getUserName());
             }
             this.current_user = si.get_cur_user(roleThreadLocal.get().getUserName());
 
         }
-        if (operation.equals("write")||operation.equals("update")||operation.equals("delete")){
-            if (roleThreadLocal.get().getRoleName().equals("patient")){
+        if (operation.equals("write") || operation.equals("update") || operation.equals("delete")) {
+            if (roleThreadLocal.get().getRoleName().equals("patient")) {
                 System.out.println("you don't have the appropriate permissions!");
-            }else if (roleThreadLocal.get().getRoleName().equals("regulator")){
+            } else if (roleThreadLocal.get().getRoleName().equals("regulator")) {
                 System.out.println("you don't have the appropriate permissions!");
-            }else {
+            } else {
                 System.out.println("Please do the operations!");
             }
         }
@@ -194,9 +194,57 @@ public class client {
         System.out.println("Please enter password: ");
         String userpass = sc.nextLine();
 
+        //Assign roles when resgistering the uesr
+        System.out.println("What role is this account assigned?");
+        System.out.println("Input: p for patient | m for medical staff | r for regulator");
+        Scanner s = new Scanner(System.in);
+        String input = s.nextLine();
+
+        String role_input = "";
+        //Check the input
+        if(input.equals("r")){
+            role_input = "regulator";
+        }
+        else if(input.equals("m")){
+            role_input = "medical staff";
+        }
+        else if(input.equals("p")){
+            role_input = "patient";
+        }
+
+
+
         //Instead of saving username and password in a map, create a new user object
         //and save that in the map. (userobj is value, key: user name or id?)
 //        User testusr= new User(username, userpass);
+        Role role=new Role();
+        ThreadLocal<Role> roleThreadLocal=new ThreadLocal<>();
+        //patient
+        if(role_input.equals("patient"))
+        {
+            role.setRoleName("patient");
+            role.setUserName(username);
+            roleThreadLocal.set(role);
+        }
+        //medical staff
+        else if(role_input.equals("medical staff"))
+        {
+            role.setRoleName("medical staff");
+            role.setUserName(username);
+            roleThreadLocal.set(role);
+        }
+        //supervise
+        else if(role_input.equals("regulator"))
+        {
+            role.setRoleName("regulator");
+            role.setUserName(username);
+            roleThreadLocal.set(role);
+        }
+        else {
+            System.out.println("Unknown command.");
+        }
+//        Map<String,Role> roleMap=new HashMap<>();
+//        roleMap.put(role.getRoleName(),role);
 
 
         //test print statement
@@ -204,7 +252,7 @@ public class client {
 
         //try registering.
         if(calculatePassword(userpass)){
-            if(si.registerAccount(username, userpass)){
+            if(si.registerAccount(username, userpass, role)){
                 System.out.println("Account succesfully registered!");
             }
             else System.out.println("Account with this username/password combination already exists.");

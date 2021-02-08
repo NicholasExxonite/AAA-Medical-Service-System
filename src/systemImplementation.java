@@ -1,4 +1,5 @@
 import java.rmi.RemoteException;
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -35,6 +36,8 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
     private HashMap<Integer, SessionKeyNegotiationValues> sknValues = new HashMap<Integer, SessionKeyNegotiationValues>();
     //The log of all changes made
     private LogsList logs = new LogsList();
+    //Contains a list of users and their assigned roles.
+    private HashMap<String, Role> access_list = new HashMap<>();
 
         // Implementations must have an explicit constructor
         // in order to declare the RemoteException exception
@@ -74,7 +77,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
      * @return
      * @throws RemoteException
      */
-    public synchronized boolean registerAccount(String username, String password) throws RemoteException{
+    public synchronized boolean registerAccount(String username, String password, Role role) throws RemoteException{
         //always false for now.
         boolean account_exists = false;
 
@@ -92,10 +95,15 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
             //Save new users with usernames as key. Maybe use the random UUID ??
             registerUsers.put(user.getName(), user);
 
+            //Add the user and his assigned role to the access list.
+
+            access_list.put(username, role);
+
             //Tests..
             System.out.println(registerUsers.get(user.getName()).getName());
             System.out.println(registerUsers.get(user.getName()).getPassword());
             System.out.println(registerUsers.get(user.getName()).getId());
+            System.out.println(access_list.get(username).getRoleName());
             return true;
         }
         else return false;
@@ -129,6 +137,39 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
         return false;
     }
 
+    /**
+     * Method which authorizes if the user is allowed to do an operation.
+     * Returns True if the user is authorized and False if the user is not authorized.
+     * @param username
+     * @param operation
+     * @return
+     * @throws RemoteException
+     */
+    public boolean roleAuthorization(String username, String operation) throws RemoteException{
+        System.out.println("roleAuthorization method");
+
+        if(access_list.get(username).getRoleName().equals("patient"))
+        {
+            if(operation.equals("r")){
+                return true;
+            }else return false;
+        }
+        else if(access_list.get(username).getRoleName().equals("medical staff"))
+        {
+            return true;
+        }
+        else if(access_list.get(username).getRoleName().equals("regulator"))
+        {
+            return true;
+        }
+        else return false;
+    }
+
+    //Get the role of a user
+    public String get_cur_user_role(String username) throws RemoteException{
+        return access_list.get(username).getRoleName();
+    }
+
     //Get the user object based on the key(username for now)
     public User get_cur_user(String username) throws RemoteException{
         return registerUsers.get(username);
@@ -142,6 +183,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
 
     }
     //------------------------------------------Session key functions below
+
 
     /**
      * Sets the values for a particular client using the values passed

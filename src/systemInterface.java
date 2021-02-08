@@ -6,7 +6,9 @@ public interface systemInterface extends java.rmi.Remote {
     // long value
 
 
-    boolean registerAccount(String username, String password) throws RemoteException;
+    boolean registerAccount(String username, String password, Role role) throws RemoteException;
+    public String get_cur_user_role(String username) throws RemoteException;
+    public boolean roleAuthorization(String username, String operation) throws RemoteException;
 //    public boolean registerAccount(User user) throws RemoteException;
     boolean loginAttempt(String username, String password) throws RemoteException;
     User get_cur_user(String username) throws RemoteException;
