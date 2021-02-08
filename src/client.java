@@ -82,6 +82,37 @@ public class client {
 
                 Scanner s = new Scanner(System.in);
                 String input = s.nextLine();
+		    
+		    Role role=new Role();
+                ThreadLocal<Role> roleThreadLocal=new ThreadLocal<>();
+                //patient
+                if(input.equals("patient"))
+                {
+                    role.setRoleName("patient");
+                    role.setUserName(current_user.getName());
+                    roleThreadLocal.set(role);
+                }
+                //medical staff
+                else if(input.equals("medical staff"))
+                {
+                    role.setRoleName("medical staff");
+                    role.setUserName(current_user.getName());
+                    roleThreadLocal.set(role);
+                }
+                //supervise
+                else if(input.equals(" regulator"))
+                {
+                    role.setRoleName(" regulator");
+                    role.setUserName(current_user.getName());
+                    roleThreadLocal.set(role);
+                }
+                else {
+                    System.out.println("Unknown command.");
+                }
+                Map<String,Role> roleMap=new HashMap<>();
+                roleMap.put(role.getRoleName(),role);
+
+                havaAuthorisation(roleThreadLocal,roleMap,si);
             }
         }
         // Catch the exceptions that may occur - rubbish URL, Remote exception
