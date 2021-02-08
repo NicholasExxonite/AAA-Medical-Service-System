@@ -150,7 +150,32 @@ public class client {
 
     }
 
-    /**
+    
+        public void havaAuthorisation(ThreadLocal<Role> roleThreadLocal,Map<String,Role> roleMap,systemInterface si) throws RemoteException{
+
+        System.out.println("Please enter your operation: ");
+        Scanner sc = new Scanner(System.in);
+        String operation = sc.nextLine();
+        if (operation.equals("read")){
+            if (roleThreadLocal.get().getRoleName().equals("regulator") && roleMap.get("patient") != null) {
+                this.current_user = si.get_anonymity_user(roleThreadLocal.get().getUserName());
+            }
+            this.current_user = si.get_cur_user(roleThreadLocal.get().getUserName());
+
+        }
+        if (operation.equals("write")||operation.equals("update")||operation.equals("delete")){
+            if (roleThreadLocal.get().getRoleName().equals("patient")){
+                System.out.println("you don't have the appropriate permissions!");
+            }else if (roleThreadLocal.get().getRoleName().equals("regulator")){
+                System.out.println("you don't have the appropriate permissions!");
+            }else {
+                System.out.println("Please do the operations!");
+            }
+        }
+
+    }
+	
+	/**
      * Method that tries to register the user.
      * Passes the user inputted username and password
      * to the server through java RMI for checking.
@@ -158,6 +183,8 @@ public class client {
      * @param si
      * @throws RemoteException
      */
+	
+	
     public void tryRegistering(systemInterface si) throws RemoteException{
 
         System.out.println("Please enter username: ");
