@@ -2,6 +2,9 @@ import java.io.Serializable;
 import java.util.UUID;
 
 public class User implements Serializable {
+    public void setName(String name) {
+        this.name = name;
+    }
     private String name;
     private String password;
     private UUID id;
@@ -13,7 +16,10 @@ public class User implements Serializable {
         this.id = UUID.randomUUID();
 
     }
+public User(){
 
+    }
+    
     public String getName() {
         return name;
     }
