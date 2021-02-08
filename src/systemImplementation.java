@@ -25,6 +25,8 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
     //Temporary hashmap to store usernames and passwords.
     private HashMap<String, String> credentials;
     private HashMap<String, User> registerUsers;
+    //Temporary hashmap to store usernames and rolenames
+    private HashMap<String,Role> roleHashMap;
     //The converter object used to encrypt and decrypt messages
     private Converter converter = new Converter();
     //The servers private and public key used in session key negotiation
@@ -132,6 +134,13 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
         return registerUsers.get(username);
     }
 
+//Get the anonymity user
+    public User get_anonymity_user(String username) throws RemoteException{
+        User user=registerUsers.get(username);
+        user.setName("anonymity");
+       return user;
+
+    }
     //------------------------------------------Session key functions below
 
     /**
