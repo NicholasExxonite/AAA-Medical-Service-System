@@ -351,12 +351,7 @@ public class client {
     {
         try
         {
-            //Generate clients keys
-            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
             SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
-            keyGen.initialize(1024, random);
-            KeyPair pair = keyGen.generateKeyPair();
-            PublicKey clientPublic = pair.getPublic();
             long clientRandom = random.nextLong();
 
             //send client hello
