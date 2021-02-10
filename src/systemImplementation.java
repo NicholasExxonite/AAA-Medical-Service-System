@@ -2,6 +2,7 @@ import java.rmi.RemoteException;
 import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import javax.crypto.Cipher;
@@ -69,6 +70,30 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
             }
         }
 
+    /**
+     * A method that generates a random one-time password.
+     * @param len : the length of the one-time password.
+     * @return
+     * @throws RemoteException
+     */
+    public char[] generate_password(int len) throws RemoteException
+    {
+        //possible characters for the password.
+        String possible_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + "abcdefghijklmnopqrstuvwxyz" + "0123456789" + "!@#$%^&*_=+-/.?<>)";
+
+
+        Random rnd = new Random();
+        //New char array that will contain 8symbol password.
+        char[] password = new char[len];
+
+        //take random(len amount) chars from possible_characters and fill up the OTP.
+        for(int i=0; i<len; i++)
+        {
+            password[i] = possible_chars.charAt(rnd.nextInt(possible_chars.length()));
+        }
+
+        return password;
+    }
 
     /**
      * A method that checks if such an account exists. If not it creates a new one and saves it.
