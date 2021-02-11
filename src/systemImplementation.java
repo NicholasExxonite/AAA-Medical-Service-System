@@ -1,3 +1,4 @@
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.sql.SQLOutput;
 import java.util.HashMap;
@@ -40,6 +41,11 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
     //Contains a list of users and their assigned roles.
     private HashMap<String, Role> access_list = new HashMap<>();
 
+    //Contains a list of all records. The key is their id.
+    private HashMap<Integer, Record> records_list = new HashMap<>();
+
+    private static int rec_counter = 1;
+
         // Implementations must have an explicit constructor
         // in order to declare the RemoteException exception
 
@@ -68,6 +74,26 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
                 System.out.println("NoSuchProviderException :");
                 System.out.println(e);
             }
+
+            //Dummy users for test-----------------------------
+            User user1 = new User("patient1", "patient1!");
+            Role role1 = new Role();
+            role1.setRoleName("patient");
+            User user2 = new User("patient2", "patient2!");
+            Role role2 = new Role();
+            role2.setRoleName("patient");
+            User user3 = new User("medical", "medical1!");
+            Role role3 = new Role();
+            role3.setRoleName("medical staff");
+
+            registerUsers.put(user1.getName(), user1);
+            registerUsers.put(user2.getName(), user2);
+            registerUsers.put(user3.getName(), user3);
+
+            access_list.put(user1.getName(), role1);
+            access_list.put(user2.getName(), role2);
+            access_list.put(user3.getName(), role3);
+            //----------------------------------------------------
         }
 
     /**
@@ -188,6 +214,137 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
             return true;
         }
         else return false;
+    }
+
+    /**
+     * Method that displays all records.
+     * @return String containing the information of every record.
+     * @throws RemoteException
+     */
+    public String display_records()throws RemoteException
+    {
+        StringBuilder toreturn = new StringBuilder();
+        for(Map.Entry<Integer, Record> entry : records_list.entrySet())
+        {
+            Integer id = entry.getKey();
+            Record rec = entry.getValue();
+
+
+            String s = id + " : " + rec.getRecord_name() + " : " + rec.getUsername();
+
+            toreturn.append("\n").append(s);
+        }
+        return toreturn.toString();
+    }
+
+    /**
+     * Method to display only 1 record
+     * @param id The id of the record that should be displayed.
+     * @return A string containing all information in the record.
+     * @throws RemoteException
+     */
+    public String display_one_record(Integer id) throws RemoteException
+    {
+           String toretrun = ("Record name: " + records_list.get(id).getRecord_name()
+            + "\n" + "Record information: " + records_list.get(id).getInformation()
+            + "\n" + "This record is for user: " + records_list.get(id).getUsername());
+//        try {
+//            toretrun = ("Record name: " + records_list.get(id).getRecord_name()
+//                    + "\n" + "Record information: " + records_list.get(id).getInformation()
+//                    + "\n" + "This record is for user: " + records_list.get(id).getUsername());
+//        }catch (NullPointerException | NumberFormatException ex)
+//        {
+//            toretrun = "No record with this ID";
+//        }
+//
+//        return toretrun;
+        return toretrun;
+    }
+
+    /**
+     * A method that creates a record with the given parameters. Records are saved in records_list
+     * @param username
+     * @param record_name
+     * @param record_info
+     * @return True if the record is created successfully.
+     * @throws RemoteException
+     */
+    public boolean create_record(String username, String record_name, String record_info) throws RemoteException
+    {
+        boolean does_user_exist = false;
+        //Check if the user for whom the record is, exists.
+        for(String name : registerUsers.keySet())
+        {
+            if(name.equals(username))
+            {
+                does_user_exist=true;
+            }
+        }
+
+        if(does_user_exist)
+        {
+            Record rec = new Record(username, record_name, record_info);
+            records_list.put(rec_counter, rec);
+            System.out.println("New record created: " + records_list.get(1).getRecord_name());
+
+
+            rec_counter++;
+            return true;
+        }
+        else return false;
+    }
+
+
+    //Returns the record_list
+    public HashMap<Integer, Record> getRecords_list() throws RemoteException
+    {
+        return records_list;
+    }
+
+    /**
+     * A method to get a record with a username as parameter.
+     * @param username
+     * @return The record corresponding to the given username.
+     * @throws RemoteException
+     */
+    public Record getRecord(String username) throws RemoteException
+    {
+
+        for(Record value : records_list.values())
+        {
+            if(value.getUsername().equals(username))
+            {
+                return value;
+            }
+        }
+    return null;
+    }
+
+    /**
+     * A method to update a record, given the id and new information.
+     * @param id
+     * @param new_info
+     * @throws RemoteException
+     */
+    public String updateRecord(Integer id,String new_info) throws RemoteException
+    {
+        try {
+            records_list.get(id).setInformation(new_info);
+            return "Update successful.";
+        }catch (NullPointerException | NumberFormatException ex)
+        {
+            return "No record with such ID";
+        }
+    }
+
+    /**
+     * A method to delete a record, given the id.
+     * @param id
+     * @throws RemoteException
+     */
+    public void deleteRecord(Integer id) throws RemoteException
+    {
+        records_list.remove(id);
     }
 
     //Get the role of a user

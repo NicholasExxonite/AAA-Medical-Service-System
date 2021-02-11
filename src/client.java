@@ -6,6 +6,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.sql.SQLOutput;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import javax.crypto.SecretKey;
@@ -86,33 +87,142 @@ public class client {
             System.out.println("Choose what operation you want to do.");
 
             while(is_signedin){
-                System.out.println("Possible operations: read, write, update, delete");
+                System.out.println("***Possible operations: read, write, update, delete***");
 
                 Scanner s = new Scanner(System.in);
                 String input = s.nextLine();
                 String operation = "";
-                if(input.equals("read")) operation="r";
-                else if(input.equals("write")) operation="w";
-                else if (input.equals("update")) operation="u";
-                else if(input.equals("delete")) operation="d";
+
+// READ OPERATION--------------------------------------------------------------
+                if(input.equals("read")){
+                    operation="r";
+                    if(si.roleAuthorization(current_user.getName(), operation))
+                    {
+                        //If the current user is patient, display only record for current user.
+                        if(si.get_cur_user_role(current_user.getName()).equals("patient")){
+                            System.out.println("This is your own record: \n"+
+                                    "Record name: " + si.getRecord(current_user.getName()).getRecord_name() +
+                                   "\n Record information:" + si.getRecord(current_user.getName()).getInformation());
+                        }
+                        //If current user is medical staff, display all records and information.
+                        else if(si.get_cur_user_role(current_user.getName()).equals("medical staff"))
+                        {
+                            //Dispay all records
+                            System.out.println(si.display_records());
+
+                            System.out.println("Choose an entry to read. (choose id)");
+                            Scanner e_scan = new Scanner(System.in);
+                            String id_input = s.nextLine();
+
+                            //display chosen record
+                            try {
+                                System.out.println(si.display_one_record(Integer.parseInt(id_input)));
+                            }catch (NumberFormatException | NullPointerException e)
+                            {
+                                System.out.println("No record with this ID");
+                            }
+
+                        }
+                        //If current user is regulator display all records, but without the usernames.(anonymous)
+                        else if(si.get_cur_user_role(current_user.getName()).equals("regulator"))
+                        {
+                            //Displays all records
+                            si.display_records();
+
+                            System.out.println("Choose an entry to read. (choose id)");
+                            Scanner e_scan = new Scanner(System.in);
+                            String id_input = s.nextLine();
+
+                            //Display the chosen record
+                            try {
+                                System.out.println(si.display_one_record(Integer.parseInt(id_input)));
+                            }catch (NumberFormatException | NullPointerException e)
+                            {
+                                System.out.println("No record with such ID");
+                            }
+                        }
+
+                    }
+                    else System.out.println("You don't have access to this operation");
+                }
+// END OF READ OPERATION ------------------------------
+
+//WRITE OPERATION----------------------------------
+                else if(input.equals("write"))
+                {
+                    operation="w";
+                    //Check if the current user has access
+                    if(si.roleAuthorization(current_user.getName(), operation))
+                    {
+                        System.out.println("1.Username of the user this record is for. \n " +
+                                "2.Name for the record \n" +
+                                "3.Information/Description of record");
+                        Scanner new_record_scan = new Scanner(System.in);
+                        String name = new_record_scan.nextLine();
+                        String record_name = new_record_scan.nextLine();
+                        String description = new_record_scan.nextLine();
+
+                        //Create record
+                        if(si.create_record(name, record_name, description))
+                        {
+                            System.out.println("Record created.");
+                        }
+                        else System.out.println("Such user does not exist.");
+
+                    }
+                    else System.out.println("You don't have access to this operation");
+                }
+//END OF WRITE OPERATION----------------------------------
+
+//UPDATE OPERATION-----------------------------------------------------------
+                else if (input.equals("update"))
+                {
+                    operation="u";
+                    //Check if the current user has access
+                    if(si.roleAuthorization(current_user.getName(), operation))
+                    {
+                        si.display_records();
+
+                        System.out.println("Please enter the ID of the record you want to update " +
+                                "followed by the new information/description");
+                        Scanner sc = new Scanner(System.in);
+                        String rec_id = sc.nextLine();
+                        String new_info = sc.nextLine();
+
+                        //Update record
+                        si.updateRecord(Integer.parseInt(rec_id), new_info);
+                    }
+                }
+//END OF UPDATE OPERATION--------------------------------------------------------
+
+//DELETE OPERATION-----------------------------
+                else if(input.equals("delete"))
+                {
+                    operation="d";
+                    //Check if the current user has access
+                    if(si.roleAuthorization(current_user.getName(), operation))
+                    {
+
+                        si.display_records();
+
+                        System.out.println("Please enter the ID of the record you want to update " +
+                                "followed by the new information/description");
+                        Scanner sc = new Scanner(System.in);
+                        String rec_id = sc.nextLine();
+
+
+                        //Delete record
+                        si.deleteRecord(Integer.parseInt(rec_id));
+
+                    }
+                }
                 else{
                     System.out.println("Unknown operation.");
                     continue;
                 }
-                //send the operation to the server to check if the user has the right role for access
-
-                if(si.roleAuthorization(current_user.getName(), operation))
-                {
-                    System.out.println("Operation done!");
-                    //Do operation..
-                }
-                else {
-                    System.out.println("You don't have access to this operation.");
-                    continue;
-                }
+//END OF DELETE OPERATION ------------------------------
 
 
-//                havaAuthorisation(roleThreadLocal,roleMap,si);
             }
         }
         // Catch the exceptions that may occur - rubbish URL, Remote exception
