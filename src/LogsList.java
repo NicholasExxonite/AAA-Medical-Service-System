@@ -141,8 +141,7 @@ public class LogsList
      */
     private void selectLatestBackup()
     {
-        try
-        {
+        
             HashMap<Integer, Log> testLog = new HashMap<Integer, Log>();
             int current = logs.size() + 1;
             boolean tampered = true;
@@ -166,29 +165,56 @@ public class LogsList
                 //if no valid backup found
                 if(current < 0)
                 {
-                    System.out.println("\nNo backups exist");
-                    //reset logs?
-                    System.out.println("\nReseting will delete the current log \n\nReset logs? <Y/N>");
-                    String choice = reader.readLine();
-                    if (choice.equals("Y"))
+                    try
                     {
-                        //save deleted log for inspection
-                        saveLog(ABANDONEDLOG, logs);
-                        //create a new log
-                        logs = new HashMap<Integer, Log>();
-                        logs.put(1, new Log("-Server-", "Start", "New log list created", "FirstEntry".getBytes()));
-                        saveLog(MAINLOGS, logs);
-                        System.out.println("Logs Reset");
+                        System.out.println("\nNo backups exist");
+                        //reset logs?
+                        System.out.println("\nReseting will delete the current log \n\nReset logs? <Y/N>");
+                        String choice = reader.readLine();
+                        if (choice.equals("Y"))
+                        {
+                            //save deleted log for inspection
+                            saveLog(ABANDONEDLOG, logs);
+                            //create a new log
+                            logs = new HashMap<Integer, Log>();
+                            logs.put(1, new Log("-Server-", "Start", "New log list created", "FirstEntry".getBytes()));
+                            saveLog(MAINLOGS, logs);
+                            System.out.println("Logs Reset");
+                        }
+                    }
+                    catch (IOException e)
+                    {
+                        System.out.println();
+                        System.out.println("IOException :");
+                        System.out.println(e);
+                        tampered = true;
                     }
                 }
                 else
                 {
-                    //set as current templog
-                    FileInputStream fis = new FileInputStream(logFile);
-                    ObjectInputStream ois = new ObjectInputStream(fis);
-                    testLog = (HashMap) ois.readObject();
-                    ois.close();
-                    fis.close();
+                    try
+                    {
+                        //set as current templog
+                        FileInputStream fis = new FileInputStream(logFile);
+                        ObjectInputStream ois = new ObjectInputStream(fis);
+                        testLog = (HashMap) ois.readObject();
+                        ois.close();
+                        fis.close();
+                    }
+                    catch (IOException e)
+                    {
+                        System.out.println();
+                        System.out.println("IOException :");
+                        System.out.println(e);
+                        tampered = true;
+                    }
+                    catch (ClassNotFoundException e)
+                    {
+                        System.out.println();
+                        System.out.println("ClassNotFoundException :");
+                        System.out.println(e);
+                        tampered = true;
+                    }
                     //verify current log
                     for(int i = 2; i <= testLog.size(); i++)
                     {
@@ -206,8 +232,18 @@ public class LogsList
             //if not being caused by failing to read the log file, allow server to have choice about backing up
             if(logs.size() > current)
             {
-                System.out.println("\n Setting this as your current log will delete the last " + (logs.size() - current) + " entries.\n\nSet as current log? <Y/N>");
-                choice = reader.readLine();
+                try
+                {
+                    System.out.println("\n Setting this as your current log will delete the last " + (logs.size() - current) + " entries.\n\nSet as current log? <Y/N>");
+                    choice = reader.readLine();
+                }
+                catch (IOException e)
+                {
+                    System.out.println();
+                    System.out.println("IOException :");
+                    System.out.println(e);
+                    tampered = true;
+                }
             }
             if(choice.equals("Y"))
             {
@@ -220,19 +256,7 @@ public class LogsList
                 System.out.println("Backup loaded");
             }
             System.out.println(this);
-        }
-        catch (IOException e)
-        {
-            System.out.println();
-            System.out.println("IOException :");
-            System.out.println(e);
-        }
-        catch (ClassNotFoundException e)
-        {
-            System.out.println();
-            System.out.println("ClassNotFoundException :");
-            System.out.println(e);
-        }
+        
     }
 
     /**
