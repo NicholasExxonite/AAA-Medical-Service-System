@@ -181,7 +181,7 @@ public class client {
                     //Check if the current user has access
                     if(si.roleAuthorization(current_user.getName(), operation))
                     {
-                        si.display_records();
+                        System.out.println(si.display_records());
 
                         System.out.println("Please enter the ID of the record you want to update " +
                                 "followed by the new information/description");
@@ -190,7 +190,12 @@ public class client {
                         String new_info = sc.nextLine();
 
                         //Update record
-                        si.updateRecord(Integer.parseInt(rec_id), new_info);
+                        try {
+                            si.updateRecord(Integer.parseInt(rec_id), new_info);
+                        }catch (NullPointerException | NumberFormatException e)
+                        {
+                            System.out.println("No record with such ID");
+                        }
                     }
                 }
 //END OF UPDATE OPERATION--------------------------------------------------------
@@ -203,7 +208,7 @@ public class client {
                     if(si.roleAuthorization(current_user.getName(), operation))
                     {
 
-                        si.display_records();
+                        System.out.println(si.display_records());
 
                         System.out.println("Please enter the ID of the record you want to update " +
                                 "followed by the new information/description");
@@ -212,7 +217,12 @@ public class client {
 
 
                         //Delete record
-                        si.deleteRecord(Integer.parseInt(rec_id));
+                        try {
+                            si.deleteRecord(Integer.parseInt(rec_id));
+                        }catch (NullPointerException | NumberFormatException e)
+                        {
+                            System.out.println("No record with this ID");
+                        }
 
                     }
                 }

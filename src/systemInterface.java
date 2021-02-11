@@ -12,7 +12,7 @@ public interface systemInterface extends java.rmi.Remote {
     public Record getRecord(String username) throws RemoteException;
     public String display_records()throws RemoteException;
     public String display_one_record(Integer id) throws RemoteException;
-    public String updateRecord(Integer id,String new_info) throws RemoteException;
+    public void updateRecord(Integer id,String new_info) throws RemoteException;
     public void deleteRecord(Integer id) throws RemoteException;
     public HashMap<Integer, Record> getRecords_list() throws RemoteException;
     char[] generate_password(int len) throws RemoteException;

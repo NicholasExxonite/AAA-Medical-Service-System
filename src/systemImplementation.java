@@ -341,15 +341,9 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
      * @param new_info
      * @throws RemoteException
      */
-    public String updateRecord(Integer id,String new_info) throws RemoteException
+    public void updateRecord(Integer id,String new_info) throws RemoteException
     {
-        try {
-            records_list.get(id).setInformation(new_info);
-            return "Update successful.";
-        }catch (NullPointerException | NumberFormatException ex)
-        {
-            return "No record with such ID";
-        }
+        records_list.get(id).setInformation(new_info);
     }
 
     /**
