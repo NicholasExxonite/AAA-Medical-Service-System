@@ -117,7 +117,8 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
         {
             password[i] = possible_chars.charAt(rnd.nextInt(possible_chars.length()));
         }
-
+		
+		logs.addLog("CLIENT " + (sknValues.size()-1), "create", "Created one time password");
         return password;
     }
 
@@ -155,6 +156,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
             System.out.println(registerUsers.get(user.getName()).getPassword());
             System.out.println(registerUsers.get(user.getName()).getId());
             System.out.println(access_list.get(username).getRoleName());
+            logs.addLog(username, "create", "created user");
             return true;
         }
         else return false;
@@ -178,9 +180,13 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
             //Check if the inputted password matches this user object's passowrd.
             if(password.equals(registerUsers.get(username).getPassword())){
                 System.out.println("Passowrd exists! Logged in");
+                logs.addLog(username, "login", "Successfull Login");
                 return true;
             }
-            else System.out.println("Username exists, password doesn't match");
+            else {
+				System.out.println("Username exists, password doesn't match");
+				logs.addLog(username, "login", "Wrong Password");
+			}
         }
         else System.out.println("Username doesn't exist");
 
@@ -202,18 +208,27 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
         if(access_list.get(username).getRoleName().equals("patient"))
         {
             if(operation.equals("r")){
+                logs.addLog(username, "authorization", "Authorized Patient");
                 return true;
-            }else return false;
+            }else 
+            {	logs.addLog(username, "authorization", "Unauthorized");
+				 return false;
+			}
         }
         else if(access_list.get(username).getRoleName().equals("medical staff"))
         {
+			logs.addLog(username, "authorization", "Authorized Medical Staff");
             return true;
         }
         else if(access_list.get(username).getRoleName().equals("regulator"))
         {
+			logs.addLog(username, "authorization", "Authorized Regulator");
             return true;
         }
-        else return false;
+        else {
+			logs.addLog(username, "authorization", "Unauthorized");
+			 return false;
+		 }
     }
 
     /**
@@ -378,7 +393,7 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
         sknValues.put(sknValues.size(), new SessionKeyNegotiationValues());
         sknValues.get(sknValues.size()-1).setClientRandom(clientRandom);
         //add log for person attempting connection, identify person later
-        logs.addLog("person " + (sknValues.size()-1), "connect", "requested connection");
+        logs.addLog("CLIENT " + (sknValues.size()-1), "connect", "requested connection");
         //generate a session id for the client
         return sknValues.size()-1;
     }
