@@ -135,8 +135,16 @@ public class systemImplementation extends java.rmi.server.UnicastRemoteObject im
 
 
         //Code to check database/data array if the username+password combination already exists.
-        //...
-        //...
+
+        for (String name: registerUsers.keySet())
+        {
+            if(name.equals(username))
+            {
+                //This account already exists
+                account_exists = false;
+            }
+            else account_exists=true;
+        }
 
 
         //If it doesn't exist return true, account is created
